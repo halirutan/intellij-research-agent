@@ -1,0 +1,11 @@
+---
+description: Pull IntelliJ sources and refresh the validated local research navigation.
+agent: intellij-research-maintainer
+subtask: false
+---
+
+Update the IntelliJ research source mirror and navigation using the maintainer workflow.
+
+The maintainer must run `prepare-update`, inspect the complete update report and changed paths, update only the candidate navigation index, verify every route, and run `finalize-update`. Do not treat the update as complete until the candidate has been validated and promoted. Report repository revisions, navigation changes, and any validation failures.
+
+$ARGUMENTS

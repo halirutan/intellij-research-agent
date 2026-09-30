@@ -50,7 +50,7 @@ class CLIHelpersTest(unittest.TestCase):
                 cli.install_agents(source_root, destination)
                 cli.install_agents(source_root, destination)
                 metadata = json.loads((destination / cli.INSTALL_METADATA).read_text(encoding="utf-8"))
-                self.assertIn("intellij-research", metadata["files"])
+                self.assertIn("intellij-research", metadata["agents"])
             finally:
                 cli.TEMPLATE_DIR = old_template_dir
 

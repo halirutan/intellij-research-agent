@@ -19,23 +19,25 @@ Restart OpenCode after installation.
 
 ## Update
 
-Update all clean source checkouts, rebuild the local routing index, validate paths, and refresh the installed agents:
+Use the single OpenCode command to update all clean source checkouts, review navigation changes, validate paths, and promote the new navigation atomically:
 
 ```bash
-python -m intellij_research update-agent
+/update-intellij-research
 ```
 
-Updates use `git fetch` and fast-forward-only merges. The command refuses dirty repositories and refuses to overwrite manually changed installed agents.
+The command runs the hidden maintainer agent. It uses `prepare-update` to fetch and fast-forward the sources, writes an update report and candidate index, asks the maintainer to inspect changed paths and edit only the candidate, then runs `finalize-update`. The previous active index remains in use if validation fails. Updates use `git fetch` and fast-forward-only merges. The command refuses dirty repositories and refuses to overwrite manually changed installed definitions.
 
 Useful commands:
 
 ```bash
 python -m intellij_research validate
+python -m intellij_research prepare-update
+python -m intellij_research finalize-update
 python -m intellij_research uninstall
 python -m intellij_research --source-root /path/to/sources install
 ```
 
-The tracked `AGENTS.md` is the maintained routing baseline. The Git-ignored `sources/.intellij-research-index.md` records generated path and revision information for the current mirror. Semantic routing-guide maintenance belongs to the prompt in `maintenance/update-agents.md` and should be reviewed by a maintainer before changing the tracked guide.
+The active `sources/.intellij-research-index.md` is the validated navigation authority used by the research agents. The candidate index, update report, and revision state are Git-ignored maintenance files. The tracked `guides/AGENTS.md` remains the seed/fallback baseline and is not edited by end-user updates.
 
 ## Layout
 
