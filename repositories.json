@@ -1,0 +1,53 @@
+[
+  {
+    "name": "intellij-community",
+    "url": "https://github.com/JetBrains/intellij-community.git",
+    "branch": "master",
+    "recursive_submodules": false,
+    "important_paths": [
+      "README.md",
+      "platform/platform-impl/resources/intellij.platform.ide.impl.xml",
+      "platform/ide-core/resources/intellij.platform.ide.core.xml",
+      "platform/lang-api/resources/intellij.platform.lang.xml"
+    ]
+  },
+  {
+    "name": "intellij-sdk-docs",
+    "url": "https://github.com/JetBrains/intellij-sdk-docs.git",
+    "branch": "main",
+    "recursive_submodules": false,
+    "important_paths": [
+      "README.md",
+      "topics/intro/welcome.topic",
+      "topics/appendix/resources/explore_api.md"
+    ]
+  },
+  {
+    "name": "intellij-platform-gradle-plugin",
+    "url": "https://github.com/JetBrains/intellij-platform-gradle-plugin.git",
+    "branch": "main",
+    "recursive_submodules": false,
+    "important_paths": ["README.md", "src/main/kotlin/org/jetbrains/intellij/platform/gradle"]
+  },
+  {
+    "name": "gradle-changelog-plugin",
+    "url": "https://github.com/JetBrains/gradle-changelog-plugin.git",
+    "branch": "main",
+    "recursive_submodules": false,
+    "important_paths": ["README.md", "src/main/kotlin/org/jetbrains/changelog"]
+  },
+  {
+    "name": "intellij-platform-plugin-template",
+    "url": "https://github.com/JetBrains/intellij-platform-plugin-template.git",
+    "branch": "main",
+    "recursive_submodules": false,
+    "important_paths": ["README.md", "build.gradle.kts", "src/main/resources/META-INF/plugin.xml"]
+  },
+  {
+    "name": "GrammarKitDoc",
+    "url": "https://github.com/halirutan/GrammarKitDoc.git",
+    "branch": "main",
+    "recursive_submodules": true,
+    "important_paths": ["README.md", "docs/index.md", "Grammar-Kit/resources/META-INF/plugin.xml"]
+  }
+]

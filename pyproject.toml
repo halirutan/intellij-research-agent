@@ -1,0 +1,8 @@
+[project]
+name = "intellij-research-agent"
+version = "0.1.0"
+description = "Source mirror and OpenCode agents for IntelliJ Platform research"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
