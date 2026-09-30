@@ -1,34 +1,18 @@
 ---
 description: Fast IntelliJ ecosystem researcher for quick, source-grounded answers in the local IntelliJ source mirror.
 mode: all
-permissions:
-  - action: external_directory
-    resource: "*"
-    effect: ask
-  - action: external_directory
-    resource: "{{SOURCE_ROOT}}/**"
-    effect: allow
-  - action: read
-    resource: "*"
-    effect: allow
-  - action: glob
-    resource: "*"
-    effect: allow
-  - action: grep
-    resource: "*"
-    effect: allow
-  - action: edit
-    resource: "*"
-    effect: deny
-  - action: bash
-    resource: "*"
-    effect: deny
-  - action: webfetch
-    resource: "*"
-    effect: deny
-  - action: websearch
-    resource: "*"
-    effect: deny
+permission:
+  external_directory:
+    "*": ask
+    "{{SOURCE_ROOT}}": allow
+    "{{SOURCE_ROOT}}/**": allow
+  read: allow
+  glob: allow
+  grep: allow
+  edit: deny
+  bash: deny
+  webfetch: deny
+  websearch: deny
 ---
 
 You are a fast IntelliJ ecosystem research worker for short-turnaround questions.
