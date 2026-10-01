@@ -18,6 +18,20 @@ class CLIHelpersTest(unittest.TestCase):
             self.assertIn((source_root / ".intellij-research-index.md").as_posix(), rendered)
             self.assertNotIn("{{", rendered)
 
+    def test_maintainer_allows_repository_and_exact_update_helpers(self) -> None:
+        source_root = Path("/tmp/intellij-research-sources")
+        rendered = cli.render(cli.TEMPLATE_DIR / "intellij-research-maintainer.md.in", source_root)
+        self.assertIn(f'    "{cli.ROOT.as_posix()}": allow', rendered)
+        self.assertIn(f'    "{cli.ROOT.as_posix()}/**": allow', rendered)
+        self.assertIn(
+            f'    \'python3 -m intellij_research --source-root "{source_root.as_posix()}" prepare-update\': allow',
+            rendered,
+        )
+        self.assertIn(
+            f'    \'python3 -m intellij_research --source-root "{source_root.as_posix()}" finalize-update\': allow',
+            rendered,
+        )
+
     def test_hash_is_stable(self) -> None:
         self.assertEqual(cli.sha256_text("same"), cli.sha256_text("same"))
         self.assertNotEqual(cli.sha256_text("same"), cli.sha256_text("other"))
