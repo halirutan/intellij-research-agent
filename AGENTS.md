@@ -22,7 +22,7 @@ It also installs the global `/update-intellij-research` command and maintains a 
 
 Generated files under `sources/`:
 
-- `.intellij-research-index.md`: active validated navigation used by research agents.
+- `.intellij-research-index.md`: cumulative validated semantic navigation and current checkout revisions used by research agents.
 - `.intellij-research-index.candidate.md`: maintainer-only candidate; never use as research guidance.
 - `.intellij-research-update-report.md`: revisions and changed paths for the current update.
 - `.intellij-research-state.json`: last successfully finalized revisions; internal bookkeeping.
@@ -63,7 +63,7 @@ Users should run the single OpenCode command:
 /update-intellij-research
 ```
 
-The hidden maintainer agent runs `prepare-update`, reviews the complete update report and changed paths, edits only the candidate index, verifies navigation, then runs `finalize-update`. Finalization validates literal paths, supported globs, manifest-important paths, and repository state before atomically promoting the candidate. If validation fails, the previous active index remains valid.
+The hidden maintainer agent runs `prepare-update`, which copies the active routing guide into the candidate and refreshes current checkout revisions. The maintainer reviews the complete update report and changed paths as audit evidence, edits only candidate semantic routing when needed, verifies navigation, then runs `finalize-update`. Finalization rejects maintenance leakage and abnormal growth and validates literal paths, supported globs, manifest-important paths, and repository state before atomically promoting the candidate. If validation fails, the previous active index remains valid.
 
 Direct helpers are available when debugging:
 

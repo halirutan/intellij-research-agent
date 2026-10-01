@@ -26,10 +26,10 @@ Run this workflow exactly:
 2. Run this approved helper through bash:
    `cd "{{REPO_ROOT}}" && python -m intellij_research --source-root "{{SOURCE_ROOT}}" prepare-update`
 3. Read the resulting `{{SOURCE_ROOT}}/{{UPDATE_REPORT}}` and `{{SOURCE_ROOT}}/{{CANDIDATE_INDEX}}`.
-4. Inspect the full changed-path ranges relevant to navigation. Verify every route in the candidate against the current source. Add, remove, or correct routes when upstream changes make navigation stale, misleading, or materially weaker. Keep the candidate concise and focused on high-value entry points.
-5. Edit only `{{SOURCE_ROOT}}/{{CANDIDATE_INDEX}}`. Never edit upstream repositories, `AGENTS.md`, the active index, state, report, agent templates, or unrelated files.
+4. Treat changed paths as audit evidence only; never copy them into the candidate. Ask whether an agent would be misled, blocked, or sent to a stale location if the routing guide stays unchanged. Verify every existing route, prefer correcting routes over adding them, and add a route only when it fills a critical navigation gap.
+5. Edit only the `Routing Guide` section of `{{SOURCE_ROOT}}/{{CANDIDATE_INDEX}}`, and make the smallest necessary change. The candidate starts from the active index so previous semantic improvements persist; its `Checkouts` section is machine-owned current revision metadata. Never edit upstream repositories, `AGENTS.md`, the active index, state, report, agent templates, or unrelated files.
 6. Re-read the complete candidate and run this finalization helper through bash:
    `cd "{{REPO_ROOT}}" && python -m intellij_research --source-root "{{SOURCE_ROOT}}" finalize-update`
 7. If finalization fails, leave the previous active index untouched, report the validation error, and do not retry by weakening the checks.
 
-The finalization helper verifies literal paths, supported globs, manifest-important paths, and repository state before atomically promoting the candidate. The candidate is never research input; only the active index is authoritative.
+The finalization helper rejects maintenance evidence and abnormal routing growth, verifies literal paths, supported globs, manifest-important paths, and repository state, then atomically promotes the candidate. The candidate is never research input; only the active index is authoritative.

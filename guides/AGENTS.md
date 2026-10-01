@@ -35,4 +35,4 @@ This workspace is read-only reference material for IntelliJ plugin development. 
 4. Follow the implementation package to the EP interface or bean class.
 5. Inspect DevKit indexes if `plugin.xml` behavior remains unclear.
 
-The generated `.intellij-research-index.md` beside this guide contains current checkout revisions and validation results. Treat it as machine-generated context, not as a replacement for this guide.
+The generated `.intellij-research-index.md` beside this guide starts from this routing baseline, preserves validated semantic improvements across updates, and records current checkout revisions. It never contains changed-path audit data.

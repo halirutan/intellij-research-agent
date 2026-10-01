@@ -24,6 +24,12 @@ ACTIVE_INDEX = ".intellij-research-index.md"
 CANDIDATE_INDEX = ".intellij-research-index.candidate.md"
 UPDATE_REPORT = ".intellij-research-update-report.md"
 STATE_FILE = ".intellij-research-state.json"
+ROUTING_HEADING = "## Routing Guide"
+CHECKOUTS_HEADING = "## Checkouts"
+RESOLUTION_HEADING = "## Resolution"
+MAX_ROUTING_GROWTH_LINES = 25
+MAX_ROUTING_GROWTH_CHARACTERS = 4000
+MAX_ROUTING_SHRINK_LINES = 10
 
 
 class CLIError(RuntimeError):
@@ -143,68 +149,80 @@ def install_guide(source_root: Path) -> None:
     target.write_text(content, encoding="utf-8")
 
 
-def path_state(source_root: Path, repository: Repository, relative: str) -> str:
-    path = checkout_path(source_root, repository) / relative
-    if path.is_dir():
-        return "directory"
-    if path.is_file():
-        return "file"
-    return "MISSING"
-
-
 def write_atomic(path: Path, content: str | bytes) -> None:
     if isinstance(content, str):
-        temporary = tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False)
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=path.parent, delete=False) as temporary:
+            temporary.write(content)
+            temporary_path = Path(temporary.name)
     else:
-        temporary = tempfile.NamedTemporaryFile("wb", dir=path.parent, delete=False)
-    with temporary:
-        temporary.write(content)
-        temporary_path = Path(temporary.name)
+        with tempfile.NamedTemporaryFile("wb", dir=path.parent, delete=False) as temporary:
+            temporary.write(content)
+            temporary_path = Path(temporary.name)
     temporary_path.replace(path)
 
 
-def generate_index(source_root: Path, revisions: dict[str, tuple[str, str, list[str]]] | None = None, destination: Path | None = None) -> Path:
-    revisions = revisions or {}
+def checkout_section(source_root: Path) -> str:
     lines = [
-        "# IntelliJ Research Navigation Index",
+        CHECKOUTS_HEADING,
         "",
-        "Use this validated local index as the primary navigation guide for the IntelliJ source mirror. Resolve paths relative to the mirror root.",
-        "",
-        f"Mirror root: `{source_root}`",
-        "",
-        "## Routing Guide",
-        "",
-        GUIDE.read_text(encoding="utf-8").strip(),
-        "",
-        "## Checkouts",
-        "",
-        "| Repository | Branch | Revision | Update | Important paths |",
-        "|---|---|---|---|---|",
+        "| Repository | Branch | Revision |",
+        "|---|---|---|",
     ]
     for repository in load_repositories():
         checkout = checkout_path(source_root, repository)
         if (checkout / ".git").exists():
             branch = git(checkout, "branch", "--show-current")
             revision = git(checkout, "rev-parse", "HEAD")
-            before, after, changed = revisions.get(repository.name, (revision, revision, []))
-            update = "unchanged" if before == after else f"{before[:12]} -> {after[:12]}"
-            paths = ", ".join(
-                f"`{item}` ({path_state(source_root, repository, item)})" for item in repository.important_paths
-            )
-            lines.append(f"| `{repository.name}` | `{branch}` | `{revision[:12]}` | {update} ({len(changed)} paths) | {paths} |")
+            lines.append(f"| `{repository.name}` | `{branch}` | `{revision[:12]}` |")
         else:
-            lines.append(f"| `{repository.name}` | - | - | missing | - |")
-    lines.extend(["", "## Changed Paths", ""])
-    for repository in load_repositories():
-        changed = revisions.get(repository.name, ("", "", []))[2]
-        if changed:
-            lines.append(f"### {repository.name}")
-            lines.extend(f"- `{item}`" for item in changed)
-            lines.append("")
-    lines.extend(["## Resolution", "", "Resolve paths in the routing guide relative to the directory containing this file.", ""])
+            lines.append(f"| `{repository.name}` | - | - |")
+    return "\n".join(lines)
+
+
+def generate_index(source_root: Path, destination: Path | None = None) -> Path:
+    content = "\n".join([
+        "# IntelliJ Research Navigation Index",
+        "",
+        "Use this validated local index as the primary navigation guide for the IntelliJ source mirror. Resolve paths relative to the mirror root.",
+        "",
+        f"Mirror root: `{source_root}`",
+        "",
+        ROUTING_HEADING,
+        "",
+        GUIDE.read_text(encoding="utf-8").strip(),
+        "",
+        checkout_section(source_root),
+        "",
+        RESOLUTION_HEADING,
+        "",
+        "Resolve paths in the routing guide relative to the directory containing this file.",
+        "",
+    ])
     index = destination or source_root / ACTIVE_INDEX
-    write_atomic(index, "\n".join(lines) + "\n")
+    write_atomic(index, content + "\n")
     return index
+
+
+def replace_checkout_section(content: str, replacement: str) -> str:
+    checkout_matches = list(re.finditer(rf"(?m)^{re.escape(CHECKOUTS_HEADING)}\s*$", content))
+    resolution_matches = list(re.finditer(rf"(?m)^{re.escape(RESOLUTION_HEADING)}\s*$", content))
+    if len(checkout_matches) != 1 or len(resolution_matches) != 1:
+        raise CLIError("Active navigation index must contain exactly one Checkouts and Resolution section")
+    checkout = checkout_matches[0]
+    resolution = resolution_matches[0]
+    if checkout.start() >= resolution.start():
+        raise CLIError("Active navigation index has invalid section ordering")
+    return content[:checkout.start()] + replacement.rstrip() + "\n\n" + content[resolution.start():]
+
+
+def prepare_candidate_index(source_root: Path) -> Path:
+    active = source_root / ACTIVE_INDEX
+    if not active.is_file():
+        raise CLIError(f"Missing active navigation index: {active}. Run install first.")
+    content = replace_checkout_section(active.read_text(encoding="utf-8"), checkout_section(source_root))
+    candidate = source_root / CANDIDATE_INDEX
+    write_atomic(candidate, content)
+    return candidate
 
 
 def current_revisions(source_root: Path) -> dict[str, str]:
@@ -248,12 +266,90 @@ def read_state(source_root: Path) -> dict[str, Any]:
         raise CLIError(f"Invalid research state: {path}") from error
 
 
-def validate_navigation(source_root: Path, navigation: Path) -> list[str]:
+def routing_content(content: str) -> str | None:
+    routing_matches = list(re.finditer(rf"(?m)^{re.escape(ROUTING_HEADING)}\s*$", content))
+    checkout_matches = list(re.finditer(rf"(?m)^{re.escape(CHECKOUTS_HEADING)}\s*$", content))
+    if len(routing_matches) != 1 or len(checkout_matches) != 1:
+        return None
+    routing = routing_matches[0]
+    checkout = checkout_matches[0]
+    if routing.end() >= checkout.start():
+        return None
+    return content[routing.end():checkout.start()].strip()
+
+
+def checkout_content(content: str) -> str | None:
+    checkout_matches = list(re.finditer(rf"(?m)^{re.escape(CHECKOUTS_HEADING)}\s*$", content))
+    resolution_matches = list(re.finditer(rf"(?m)^{re.escape(RESOLUTION_HEADING)}\s*$", content))
+    if len(checkout_matches) != 1 or len(resolution_matches) != 1:
+        return None
+    checkout = checkout_matches[0]
+    resolution = resolution_matches[0]
+    if checkout.start() >= resolution.start():
+        return None
+    return content[checkout.start():resolution.start()].strip()
+
+
+def navigation_content_errors(content: str) -> list[str]:
+    errors: list[str] = []
+    routing = routing_content(content)
+    if routing is None:
+        errors.append("Navigation index must contain one Routing Guide followed by one Checkouts section")
+    elif not routing:
+        errors.append("Navigation index Routing Guide must not be empty")
+    if checkout_content(content) is None:
+        errors.append("Navigation index must contain one Checkouts followed by one Resolution section")
+    if re.search(r"(?mi)^#{1,6}\s+Changed Paths\s*$", content):
+        errors.append("Navigation index contains maintenance-only Changed Paths")
+    if re.search(r"(?m)^\s*-\s+`(?:[ACDMRTUXB?]{1,2}|[RC][0-9]+)\t", content):
+        errors.append("Navigation index contains maintenance-only Git diff entries")
+    if re.search(r"(?mi)^#\s+IntelliJ Research Update Report\s*$", content) or re.search(
+        r"(?mi)^\s*-\s+(?:Previous revision|Current revision|Changed paths):", content
+    ):
+        errors.append("Navigation index contains maintenance-only update report metadata")
+    return errors
+
+
+def routing_growth_errors(active_content: str, candidate_content: str) -> list[str]:
+    active_routing = routing_content(active_content)
+    candidate_routing = routing_content(candidate_content)
+    if active_routing is None or candidate_routing is None:
+        return []
+    active_lines = len(active_routing.splitlines())
+    candidate_lines = len(candidate_routing.splitlines())
+    allowed_lines = max(MAX_ROUTING_GROWTH_LINES, (active_lines + 3) // 4)
+    allowed_characters = max(MAX_ROUTING_GROWTH_CHARACTERS, (len(active_routing) + 3) // 4)
+    allowed_removed_lines = max(MAX_ROUTING_SHRINK_LINES, (active_lines + 3) // 4)
+    errors: list[str] = []
+    if candidate_lines - active_lines > allowed_lines:
+        errors.append(
+            f"Routing guide grew by {candidate_lines - active_lines} lines; maximum allowed growth is {allowed_lines}"
+        )
+    if len(candidate_routing) - len(active_routing) > allowed_characters:
+        errors.append(
+            "Routing guide grew by "
+            f"{len(candidate_routing) - len(active_routing)} characters; maximum allowed growth is {allowed_characters}"
+        )
+    if active_lines - candidate_lines > allowed_removed_lines:
+        errors.append(
+            f"Routing guide shrank by {active_lines - candidate_lines} lines; maximum allowed reduction is {allowed_removed_lines}"
+        )
+    return errors
+
+
+def validate_navigation(source_root: Path, navigation: Path, baseline: Path | None = None) -> list[str]:
     errors = validate(source_root)
     if not navigation.is_file():
         return [*errors, f"Missing navigation index: {navigation}"]
+    content = navigation.read_text(encoding="utf-8")
+    errors.extend(navigation_content_errors(content))
+    actual_checkouts = checkout_content(content)
+    if actual_checkouts is not None and actual_checkouts != checkout_section(source_root):
+        errors.append("Navigation index checkout metadata does not match the current source repositories")
+    if baseline is not None and baseline.is_file() and baseline != navigation:
+        errors.extend(routing_growth_errors(baseline.read_text(encoding="utf-8"), content))
     known_repositories = {repository.name: repository for repository in load_repositories()}
-    for token in re.findall(r"`([^`]+)`", navigation.read_text(encoding="utf-8")):
+    for token in re.findall(r"`([^`]+)`", content):
         if "/" not in token or token.startswith(("http://", "https://")):
             continue
         repository_name, relative = token.split("/", 1)
@@ -429,10 +525,20 @@ def prepare_sources(source_root: Path) -> None:
 def command_install(args: argparse.Namespace) -> None:
     source_root = args.source_root.resolve()
     prepare_sources(source_root)
-    generate_index(source_root)
-    write_atomic(source_root / CANDIDATE_INDEX, (source_root / ACTIVE_INDEX).read_bytes())
-    write_atomic(source_root / STATE_FILE, json.dumps({"revisions": current_revisions(source_root), "seeded": True}, indent=2) + "\n")
-    errors = validate_navigation(source_root, source_root / ACTIVE_INDEX)
+    active = source_root / ACTIVE_INDEX
+    candidate = source_root / CANDIDATE_INDEX
+    state = source_root / STATE_FILE
+    if not active.exists():
+        generate_index(source_root)
+    else:
+        refreshed = replace_checkout_section(active.read_text(encoding="utf-8"), checkout_section(source_root))
+        if refreshed != active.read_text(encoding="utf-8"):
+            write_atomic(active, refreshed)
+    if not candidate.exists():
+        write_atomic(candidate, active.read_bytes())
+    if not state.exists():
+        write_atomic(state, json.dumps({"revisions": current_revisions(source_root), "seeded": True}, indent=2) + "\n")
+    errors = validate_navigation(source_root, active)
     if errors:
         raise CLIError("Validation failed:\n- " + "\n- ".join(errors))
     config = config_dir(args.config_dir)
@@ -469,9 +575,9 @@ def prepare_update(source_root: Path) -> dict[str, tuple[str, str, list[str]]]:
         revisions[repository.name] = (audit_from, after, changed)
     install_guide(source_root)
     report = write_update_report(source_root, revisions)
-    generate_index(source_root, revisions, source_root / CANDIDATE_INDEX)
+    candidate = prepare_candidate_index(source_root)
     print(f"Prepared update report: {report}")
-    print(f"Prepared navigation candidate: {source_root / CANDIDATE_INDEX}")
+    print(f"Prepared navigation candidate: {candidate}")
     return revisions
 
 
@@ -482,23 +588,34 @@ def command_prepare_update(args: argparse.Namespace) -> None:
 def command_finalize_update(args: argparse.Namespace) -> None:
     source_root = args.source_root.resolve()
     candidate = source_root / CANDIDATE_INDEX
-    errors = validate_navigation(source_root, candidate)
+    errors = validate_navigation(source_root, candidate, source_root / ACTIVE_INDEX)
     if errors:
         raise CLIError("Validation failed:\n- " + "\n- ".join(errors))
     active = source_root / ACTIVE_INDEX
-    active.replace(active.with_name(f".{active.name}.previous")) if active.exists() else None
-    candidate.replace(active)
-    write_atomic(source_root / CANDIDATE_INDEX, active.read_bytes())
+    state_path = source_root / STATE_FILE
+    candidate_content = candidate.read_bytes()
+    active_content = active.read_bytes() if active.exists() else None
+    state_content = state_path.read_bytes() if state_path.exists() else None
     state = read_state(source_root)
     state["revisions"] = current_revisions(source_root)
     state["last_successful_update"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
-    write_atomic(source_root / STATE_FILE, json.dumps(state, indent=2) + "\n")
+    updated_state = json.dumps(state, indent=2) + "\n"
     config = config_dir(args.config_dir)
     install_agents(source_root, config / "agents")
     install_commands(source_root, config / "commands")
-    previous = active.with_name(f".{active.name}.previous")
-    if previous.exists():
-        previous.unlink()
+    try:
+        write_atomic(active, candidate_content)
+        write_atomic(state_path, updated_state)
+    except OSError:
+        if active_content is None:
+            active.unlink(missing_ok=True)
+        else:
+            write_atomic(active, active_content)
+        if state_content is None:
+            state_path.unlink(missing_ok=True)
+        else:
+            write_atomic(state_path, state_content)
+        raise
     print("Navigation candidate validated and promoted. Restart OpenCode if installed definitions changed.")
 
 

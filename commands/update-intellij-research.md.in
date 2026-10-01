@@ -6,6 +6,6 @@ subtask: false
 
 Update the IntelliJ research source mirror and navigation using the maintainer workflow.
 
-The maintainer must run `prepare-update`, inspect the complete update report and changed paths, update only the candidate navigation index, verify every route, and run `finalize-update`. Do not treat the update as complete until the candidate has been validated and promoted. Report repository revisions, navigation changes, and any validation failures.
+The maintainer must run `prepare-update`, use the complete update report and changed paths only as audit evidence, update only the candidate's `Routing Guide` when existing navigation would mislead or block research, verify every route, and run `finalize-update`. Do not treat the update as complete until the candidate has been validated and promoted. Report repository revisions, navigation changes, and any validation failures.
 
 $ARGUMENTS

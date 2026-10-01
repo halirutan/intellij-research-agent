@@ -25,7 +25,7 @@ Use the single OpenCode command to update all clean source checkouts, review nav
 /update-intellij-research
 ```
 
-The command runs the hidden maintainer agent. It uses `prepare-update` to fetch and fast-forward the sources, writes an update report and candidate index, asks the maintainer to inspect changed paths and edit only the candidate, then runs `finalize-update`. The previous active index remains in use if validation fails. Updates use `git fetch` and fast-forward-only merges. The command refuses dirty repositories and refuses to overwrite manually changed installed definitions.
+The command runs the hidden maintainer agent. It uses `prepare-update` to fetch and fast-forward the sources, writes a complete update report, copies the active semantic navigation into a candidate, and refreshes its machine-owned checkout revisions. The maintainer uses changed paths only as audit evidence and edits the candidate's routing guide only when current navigation became stale or misleading. `finalize-update` rejects maintenance leakage and abnormal growth before validating and promoting the candidate. The previous active index remains in use if validation fails. Updates use `git fetch` and fast-forward-only merges. The command refuses dirty repositories and refuses to overwrite manually changed installed definitions.
 
 Useful commands:
 
@@ -37,7 +37,7 @@ python -m intellij_research uninstall
 python -m intellij_research --source-root /path/to/sources install
 ```
 
-The active `sources/.intellij-research-index.md` is the validated navigation authority used by the research agents. The candidate index, update report, and revision state are Git-ignored maintenance files. The tracked `guides/AGENTS.md` remains the seed/fallback baseline and is not edited by end-user updates.
+The active `sources/.intellij-research-index.md` is the cumulative validated navigation authority used by the research agents. It contains durable semantic routing and current checkout revisions, never update deltas. The update report owns commit ranges and complete changed-path lists. The candidate index, update report, and revision state are Git-ignored maintenance files. The tracked `guides/AGENTS.md` remains the install/fallback seed and is not edited by end-user updates.
 
 ## Layout
 
