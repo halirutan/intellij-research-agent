@@ -32,6 +32,82 @@ class CLIHelpersTest(unittest.TestCase):
             rendered,
         )
 
+    def test_research_agents_embed_shared_guidance_with_absolute_fallback(self) -> None:
+        source_root = Path("/tmp/opencode/plugin research/custom sources")
+        source = source_root.as_posix()
+        guidance = cli.SKILL_RESEARCH_GUIDE.read_text(encoding="utf-8").strip().replace(
+            "{{SOURCE_ROOT}}", source
+        )
+        for name in ("intellij-research", "intellij-research-quick"):
+            with self.subTest(agent=name):
+                rendered = cli.render(cli.TEMPLATE_DIR / f"{name}.md.in", source_root)
+                self.assertEqual(1, rendered.count(guidance))
+                self.assertIn(f"{source}/intellij-community/.agents/skills/INDEX.md", rendered)
+                self.assertIn("only on request", rendered)
+                self.assertIn("An explicit request for skills takes precedence", rendered)
+                self.assertIn("minimal proposed `AGENTS.md` patch", rendered)
+                self.assertIn("plugin-project-relative destinations", rendered)
+                self.assertIn("Mirror paths are provenance only", rendered)
+                self.assertIn("return blocking questions to the caller", rendered)
+                self.assertIn("read only explicitly supplied project files", rendered.lower())
+                self.assertNotIn("{{", rendered)
+                self.assertNotIn(cli.SKILL_RESEARCH_GUIDE.as_posix(), rendered)
+
+    def test_research_permissions_remain_read_only_and_source_scoped(self) -> None:
+        source_root = Path("/tmp/opencode/custom sources")
+        source = source_root.as_posix()
+        for name, bash, web in (
+            ("intellij-research", "ask", "ask"),
+            ("intellij-research-quick", "deny", "deny"),
+        ):
+            with self.subTest(agent=name):
+                rendered = cli.render(cli.TEMPLATE_DIR / f"{name}.md.in", source_root)
+                frontmatter = rendered.split("---\n", 2)[1]
+                permissions = frontmatter[frontmatter.index("permission:\n"):]
+                self.assertEqual(
+                    "permission:\n"
+                    "  external_directory:\n"
+                    '    "*": ask\n'
+                    f'    "{source}": allow\n'
+                    f'    "{source}/**": allow\n'
+                    "  read: allow\n"
+                    "  glob: allow\n"
+                    "  grep: allow\n"
+                    "  edit: deny\n"
+                    f"  bash: {bash}\n"
+                    f"  webfetch: {web}\n"
+                    f"  websearch: {web}\n",
+                    permissions,
+                )
+
+    def test_all_shipped_templates_render_without_unresolved_tokens(self) -> None:
+        templates = [*cli.TEMPLATE_DIR.glob("*.md.in"), *(cli.ROOT / "commands").glob("*.md.in")]
+        for template in templates:
+            with self.subTest(template=template.name):
+                self.assertNotIn("{{", cli.render(template, Path("/tmp/opencode/custom sources")))
+
+    def test_install_embeds_guidance_without_copying_reference_skills(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "config" / "agents"
+            source_root = root / "mirror elsewhere"
+            source_root.mkdir()
+            cli.install_agents(source_root, destination)
+            expected_names = {template.name.removesuffix(".md.in") for template in cli.TEMPLATE_DIR.glob("*.md.in")}
+            self.assertEqual(expected_names, {path.stem for path in destination.glob("*.md")})
+            for name in ("intellij-research", "intellij-research-quick"):
+                content = (destination / f"{name}.md").read_text(encoding="utf-8")
+                self.assertEqual(cli.render(cli.TEMPLATE_DIR / f"{name}.md.in", source_root), content)
+                self.assertIn("## Skills and routed instructions (only on request)", content)
+            self.assertFalse((destination.parent / "skills").exists())
+            self.assertEqual([], list(source_root.iterdir()))
+
+    def test_maintainer_repairs_catalog_route_without_relying_on_changed_paths(self) -> None:
+        rendered = cli.render(cli.TEMPLATE_DIR / "intellij-research-maintainer.md.in", Path("/tmp/opencode/mirror"))
+        self.assertIn("even when no upstream skill files changed", rendered)
+        self.assertIn("add a compact mirror-relative route when it exists", rendered)
+        self.assertIn("do not copy skill inventories", rendered)
+
     def test_hash_is_stable(self) -> None:
         self.assertEqual(cli.sha256_text("same"), cli.sha256_text("same"))
         self.assertNotEqual(cli.sha256_text("same"), cli.sha256_text("other"))
@@ -69,6 +145,18 @@ class CLIHelpersTest(unittest.TestCase):
             finally:
                 cli.TEMPLATE_DIR = old_template_dir
 
+    def test_install_agents_rejects_modified_managed_research_instructions(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            destination = root / "agents"
+            cli.install_agents(root / "sources", destination)
+            agent = destination / "intellij-research.md"
+            modified = agent.read_text(encoding="utf-8") + "\nUser customization.\n"
+            agent.write_text(modified, encoding="utf-8")
+            with self.assertRaisesRegex(cli.CLIError, "Installed agent was modified"):
+                cli.install_agents(root / "sources", destination)
+            self.assertEqual(modified, agent.read_text(encoding="utf-8"))
+
     def test_generate_index_contains_navigation_and_current_revision_only(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             source_root = Path(directory)
@@ -85,6 +173,35 @@ class CLIHelpersTest(unittest.TestCase):
             self.assertNotIn("Changed Paths", content)
             self.assertNotIn("| Update |", content)
             self.assertNotIn("Important paths", content)
+
+    def test_seed_catalog_route_is_validated_like_other_navigation_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            source_root = Path(directory)
+            repository = cli.Repository("intellij-community", "https://example.test/repo.git", "master", False, ())
+            checkout = source_root / repository.name
+            (checkout / ".git").mkdir(parents=True)
+            catalog = checkout / ".agents" / "skills" / "INDEX.md"
+            # Use only the skill route so this fixture does not need unrelated SDK source files.
+            guide = source_root / "seed.md"
+            guide.write_text(
+                "# Guide\n\n| Upstream skills | `intellij-community/.agents/skills/INDEX.md` |\n",
+                encoding="utf-8",
+            )
+            with patch.object(cli, "GUIDE", guide), patch.object(
+                cli, "load_repositories", return_value=[repository]
+            ), patch.object(cli, "checkout_section", return_value=f"{cli.CHECKOUTS_HEADING}\nmetadata"):
+                cli.install_guide(source_root)
+                index = cli.generate_index(source_root)
+                errors = cli.validate_navigation(source_root, index)
+                self.assertEqual(["Navigation path does not exist: intellij-community/.agents/skills/INDEX.md"], errors)
+                catalog.parent.mkdir(parents=True)
+                catalog.write_text("# Skills\n", encoding="utf-8")
+                self.assertEqual([], cli.validate_navigation(source_root, index))
+
+    def test_shipped_seed_routes_to_catalog_not_a_duplicate_inventory(self) -> None:
+        guide = cli.GUIDE.read_text(encoding="utf-8")
+        self.assertIn("`intellij-community/.agents/skills/INDEX.md`", guide)
+        self.assertNotIn("platform-coroutines-structured-concurrency/SKILL.md", guide)
 
     def test_prepare_candidate_preserves_routing_and_removes_legacy_changes(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

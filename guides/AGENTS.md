@@ -17,6 +17,7 @@ This workspace is read-only reference material for IntelliJ plugin development. 
 | Threading / read-write actions | `intellij-sdk-docs/topics/basics/architectural_overview/threading/threading_model.md` | `intellij-community/platform/core-api/src/com/intellij/openapi/application` |
 | New plugin starter layout | `intellij-platform-plugin-template/README.md` | `intellij-platform-plugin-template/src/main/resources/META-INF/plugin.xml` |
 | Grammar-Kit / BNF / PSI generation | `GrammarKitDoc/docs/index.md` | `GrammarKitDoc/docs/integration/parser-definition.md` |
+| Upstream skills / routed instructions (when asked) | `intellij-community/.agents/skills/INDEX.md` | Full skill files and required companions linked from the catalog |
 
 ## Repository Roles
 
@@ -26,6 +27,10 @@ This workspace is read-only reference material for IntelliJ plugin development. 
 - `gradle-changelog-plugin/`: Gradle Changelog Plugin implementation.
 - `intellij-platform-plugin-template/`: current plugin project skeleton.
 - `GrammarKitDoc/`: Grammar-Kit documentation and plugin source.
+
+## Skill Discovery
+
+Use the upstream catalog instead of maintaining a duplicate skill list here. Search hidden skill directories when a catalog is absent or another repository is relevant. Deduplicate equivalent `.agents` and `.claude` copies. These files are read-only research references, not automatically installed caller skills. Read the full skill before recommending or adapting it, and distinguish public-plugin guidance from checkout-specific contributor procedures.
 
 ## EP Discovery
 

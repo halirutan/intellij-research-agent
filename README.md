@@ -36,6 +36,43 @@ Use `intellij-research-quick` for a focused question that should be answered fro
 
 Both agents read the validated local navigation index before searching. They treat the mirror as read-only source material and support material claims with source paths and symbols.
 
+### Skills And Routed Instructions
+
+On request, the agents can discover upstream skills, recommend useful instructions for a plugin, and prepare adaptations. They do not suggest skills during ordinary research unless asked. Use `intellij-research-quick` for catalog questions and focused recommendations; use `intellij-research` for substantial adaptation or compatibility checks.
+
+Examples to pass to your plugin-dev agent:
+
+```text
+Ask intellij-research-quick which upstream skills cover coroutines and Swing UI.
+Distinguish third-party-plugin guidance from platform-contributor procedures.
+
+Ask intellij-research to recommend instructions for this plugin. Supply its
+platform versions, coroutine usage, UI features, build/test setup, and relevant
+snippets. Explain the evidence for each recommendation; do not install anything.
+
+Ask intellij-research to adapt the coroutine guidance for this plugin.
+Supply our AGENTS.md, a representative routed instruction file, the relevant
+service code, and target platform versions. Follow our routing convention.
+Return complete proposed files and a minimal AGENTS.md patch for review.
+
+Ask intellij-research to prepare a coroutine skill for installation instead
+of routed instructions. Supply the same project context and our skill layout.
+```
+
+The caller supplies context explicitly; a subagent does not inherit the plugin project's full context. Start with summaries and snippets. Provide absolute project file paths only for targeted reads when needed and permitted. If access is blocked, supply the relevant contents instead. Research does not silently scan the plugin project or request broader access.
+
+An explicit request for skills takes precedence. Otherwise, research follows the supplied project's instruction framework and asks if no convention is clear. A routed handoff contains an instruction file plus a precise trigger and path in a proposed `AGENTS.md` patch. It reuses existing files where possible instead of maintaining duplicate skill and routed versions.
+
+Research remains read-only, even when asked to "install" instructions. It returns complete proposed contents, plugin-project-relative destinations, path bases, prerequisites, provenance, and validation checks. The plugin-dev agent or user reviews and applies them without overwriting existing instructions blindly. Required external repositories, files, or tools must be discussed before a blocked adaptation is called ready.
+
+Adaptations should be small and self-contained. Normal implementation uses the plugin project's local source and dependency libraries. The caller does not need direct access to this mirror; mirror paths are evidence, not runtime links. Deeper questions can still go through the research agent. Compatibility is checked against the supplied target versions, not assumed from the mirror's current revision.
+
+The upstream catalog is `intellij-community/.agents/skills/INDEX.md`, relative to the configured source root. Its entries are research references, not automatically installed skills in the plugin project. Equivalent `.claude` copies are deduplicated. Shared research instructions live in `guides/skill-research.md` and are embedded into both agents during installation, so callers do not need access to this repository to load them.
+
+Reinstalling preserves an existing navigation index. The agents therefore have a rendered absolute catalog fallback for skill requests. The next `/update-intellij-research` audit adds or repairs the catalog route through candidate validation without replacing existing semantic routes.
+
+Model-behavior acceptance cases are documented in `tests/skill-research-smoke.md`; unit tests cover rendering, navigation validation, installation, and permission declarations.
+
 ## Updating Sources
 
 Run the global OpenCode command for routine mirror updates:
@@ -107,6 +144,7 @@ The active `sources/.intellij-research-index.md` is the cumulative validated nav
 agents/                         OpenCode agent templates
 commands/                       OpenCode command templates
 guides/AGENTS.md                source-mirror routing baseline
+guides/skill-research.md         shared skill/routed-instruction research workflow
 intellij_research/              cross-platform management CLI
 maintenance/update-agents.md    source-change review guidance
 repositories.json               explicit upstream manifest

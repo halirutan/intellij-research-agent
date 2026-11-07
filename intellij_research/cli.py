@@ -17,6 +17,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "repositories.json"
 GUIDE = ROOT / "guides" / "AGENTS.md"
+SKILL_RESEARCH_GUIDE = ROOT / "guides" / "skill-research.md"
 TEMPLATE_DIR = ROOT / "agents"
 DEFAULT_SOURCE_ROOT = ROOT / "sources"
 INSTALL_METADATA = ".intellij-research-install.json"
@@ -402,8 +403,11 @@ def render(template: Path, source_root: Path) -> str:
     source = source_root.as_posix()
     index = (source_root / ACTIVE_INDEX).as_posix()
     repository_root = ROOT.as_posix()
+    content = template.read_text(encoding="utf-8")
+    if "{{SKILL_RESEARCH_GUIDANCE}}" in content:
+        content = content.replace("{{SKILL_RESEARCH_GUIDANCE}}", SKILL_RESEARCH_GUIDE.read_text(encoding="utf-8").strip())
     return (
-        template.read_text(encoding="utf-8")
+        content
         .replace("{{SOURCE_ROOT}}", source)
         .replace("{{REPO_ROOT}}", repository_root)
         .replace("{{INDEX_PATH}}", index)

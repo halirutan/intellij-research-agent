@@ -14,6 +14,7 @@ It also installs the global `/update-intellij-research` command and maintains a 
 - `agents/*.md.in`: rendered OpenCode agent templates. Edit these, not installed files.
 - `commands/*.md.in`: rendered global OpenCode command templates.
 - `guides/AGENTS.md`: tracked seed/fallback guide copied into the source mirror.
+- `guides/skill-research.md`: shared skill and routed-instruction workflow embedded into both research agents during rendering.
 - `intellij_research/`: Python 3.10+ CLI and installation logic.
 - `repositories.json`: authoritative upstream repository, branch, and important-path manifest.
 - `maintenance/update-agents.md`: navigation-maintenance rules for the maintainer agent.
