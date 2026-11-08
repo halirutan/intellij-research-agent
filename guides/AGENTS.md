@@ -1,12 +1,20 @@
 # AGENTS Guide: IntelliJ Plugin Development Sources
 
-This workspace is read-only reference material for IntelliJ plugin development. Use it to find correct docs, APIs, extension points, and build tooling internals. Resolve every path below relative to the directory containing this file.
+This workspace is read-only reference material for IntelliJ plugin development and Marketplace publication. Use it to find correct docs, APIs, extension points, build tooling internals, and distribution guidance. Resolve every path below relative to the directory containing this file.
 
 ## Fast Routing Map
 
 | If you need... | Start here | Then jump to |
 |---|---|---|
 | Official plugin docs / conceptual guidance | `intellij-sdk-docs/topics/intro/welcome.topic` | `intellij-sdk-docs/topics/appendix/resources/explore_api.md` |
+| Build / sign / verify / Gradle publishing | `intellij-sdk-docs/topics/basics/getting_started/publishing_plugin.md` | `intellij-platform-gradle-plugin/src/main/kotlin/org/jetbrains/intellij/platform/gradle/tasks` |
+| Marketplace upload / vendor setup / listing | `marketplace-docs/topics/marketplace-general/uploading-a-new-plugin.topic` | `marketplace-docs/topics/marketplace-general/publishing-and-listing-your-plugin.topic` |
+| Marketplace approval / policies / EULA | `marketplace-docs/topics/legal-agreements-policies/JetBrains-Marketplace-Approval-Guidelines.topic` | `marketplace-docs/topics/legal-agreements-policies/legal-agreements.topic` |
+| Marketplace updates / channels / visibility | `marketplace-docs/topics/marketplace-general/plugin-updates.topic` | `marketplace-docs/topics/marketplace-general/custom-release-channels.topic` |
+| Marketplace REST API / Maven downloads | `marketplace-docs/topics/api-reference/api-reference.md` | `marketplace-docs/topics/api-reference/maven-interface.md` |
+| Paid / freemium plugins / license enforcement | `marketplace-docs/topics/paid-plugins-start/paid-plugins.topic` | `marketplace-docs/topics/paid-plugins-general-info/technical-implementation.topic` |
+| Pricing / billing / fees / payouts | `marketplace-docs/topics/paid-plugins-general-info/billing-and-licensing.topic` | `marketplace-docs/topics/paid-plugins-general-info/` |
+| Marketplace promotion / ratings / analytics | `marketplace-docs/topics/marketplace-general/best-practices-for-listing.topic` | `marketplace-docs/topics/marketplace-general/analytics-tab.topic` |
 | Extension point lists | `intellij-sdk-docs/topics/appendix/resources/ep_lists/intellij_platform_extension_point_list.md` | XML declarations under `intellij-community/platform/*/resources/` |
 | `plugin.xml` structure | `intellij-sdk-docs/topics/basics/plugin_structure/plugin_configuration_file.md` | `intellij-community/plugins/devkit/devkit-core/src/dom/IdeaPlugin.java` |
 | Real EP declarations and registrations | `intellij-community/platform/platform-impl/resources/intellij.platform.ide.impl.xml` | related module resource XML files |
@@ -22,11 +30,18 @@ This workspace is read-only reference material for IntelliJ plugin development. 
 ## Repository Roles
 
 - `intellij-sdk-docs/`: canonical SDK documentation source.
+- `marketplace-docs/`: official Marketplace documentation source for publishing, distribution APIs, vendor operations, policies, promotion, and monetization.
 - `intellij-community/`: IntelliJ Platform APIs, implementations, registrations, and tests.
 - `intellij-platform-gradle-plugin/`: IntelliJ Platform Gradle Plugin implementation.
 - `gradle-changelog-plugin/`: Gradle Changelog Plugin implementation.
 - `intellij-platform-plugin-template/`: current plugin project skeleton.
 - `GrammarKitDoc/`: Grammar-Kit documentation and plugin source.
+
+## Marketplace Research
+
+Use SDK docs and Gradle sources for building, signing, verification, and publishing-task behavior; use Marketplace docs for the service-side workflow and business requirements. For related topics such as vendor profiles, hidden plugins, semantic versioning, freemium setup, or license checks, follow `marketplace-docs/marketplace-docs.tree` and local topic links. Resolve bare topic filenames under `marketplace-docs/topics/`, not just the linking file's directory. Read `.topic` XML alongside Markdown.
+
+Marketplace answers use the mirror only. Cite paths and the checkout revision from the index, flag potentially stale policy/pricing claims, and identify external legal terms or other linked material absent from the checkout as unverified. Do not browse or imply that a mirrored revision proves today's requirements.
 
 ## Skill Discovery
 

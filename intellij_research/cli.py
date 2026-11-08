@@ -18,6 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "repositories.json"
 GUIDE = ROOT / "guides" / "AGENTS.md"
 SKILL_RESEARCH_GUIDE = ROOT / "guides" / "skill-research.md"
+MARKETPLACE_RESEARCH_GUIDE = ROOT / "guides" / "marketplace-research.md"
 TEMPLATE_DIR = ROOT / "agents"
 DEFAULT_SOURCE_ROOT = ROOT / "sources"
 INSTALL_METADATA = ".intellij-research-install.json"
@@ -406,6 +407,10 @@ def render(template: Path, source_root: Path) -> str:
     content = template.read_text(encoding="utf-8")
     if "{{SKILL_RESEARCH_GUIDANCE}}" in content:
         content = content.replace("{{SKILL_RESEARCH_GUIDANCE}}", SKILL_RESEARCH_GUIDE.read_text(encoding="utf-8").strip())
+    if "{{MARKETPLACE_RESEARCH_GUIDANCE}}" in content:
+        content = content.replace(
+            "{{MARKETPLACE_RESEARCH_GUIDANCE}}", MARKETPLACE_RESEARCH_GUIDE.read_text(encoding="utf-8").strip()
+        )
     return (
         content
         .replace("{{SOURCE_ROOT}}", source)

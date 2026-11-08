@@ -1,0 +1,5 @@
+## Marketplace research
+
+- Cover the full plugin lifecycle. Use SDK docs and Gradle sources for building, signing, verification, and publishing-task behavior; use Marketplace docs for uploads, vendor/listing setup, approval, updates/channels, distribution APIs, promotion/analytics, paid/freemium licensing, and commercial terms.
+- Follow the index's topic routes. If an older index lacks Marketplace routes, read `{{SOURCE_ROOT}}/AGENTS.md` for the updated baseline; if needed, start at `{{SOURCE_ROOT}}/marketplace-docs/marketplace-docs.tree`. Follow local topic links, resolving bare filenames across topic directories, and read both Writerside `.topic` XML and Markdown sources.
+- Marketplace questions are mirror-only, including current-policy questions; this overrides the general web-research fallback. Cite local paths and the checkout revision from the index. Flag potentially stale rules, fees, or legal terms. Identify external linked material absent locally as unverified; do not browse, invent its contents, or claim the checkout proves today's requirements. State the smallest missing evidence instead.

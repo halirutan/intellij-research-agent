@@ -1,6 +1,6 @@
 # IntelliJ Research Agents
 
-This repository provides source-grounded IntelliJ Platform research through a local mirror of the upstream repositories. It installs these OpenCode definitions globally:
+This repository provides source-grounded IntelliJ Platform and JetBrains Marketplace research through a local mirror of the upstream repositories. It installs these OpenCode definitions globally:
 
 - `intellij-research-quick`: fast, targeted answers from local source.
 - `intellij-research`: deeper source, registration, history, and web research.
@@ -35,6 +35,21 @@ Paths are rendered into the installed definitions, so use the same `--source-roo
 Use `intellij-research-quick` for a focused question that should be answered from a small number of known source locations. Use `intellij-research` when the answer requires a broader implementation trace, registrations, tests, Git history, version context, or web evidence.
 
 Both agents read the validated local navigation index before searching. They treat the mirror as read-only source material and support material claims with source paths and symbols.
+
+### Marketplace Documentation
+
+The default mirror includes the public, Apache-2.0-licensed [JetBrains Marketplace documentation](https://github.com/JetBrains/marketplace-docs), tracking `master`. Research covers the full plugin lifecycle:
+
+- **SDK docs and Gradle sources:** building, signing, compatibility verification, and publishing-task behavior.
+- **Marketplace docs:** uploads, vendor profiles and listings, approval and policies, plugin updates and release channels, REST/Maven distribution APIs, promotion and analytics, paid/freemium licensing, pricing, fees, and payouts.
+
+The navigation guide provides topic-specific entry points and uses `marketplace-docs/marketplace-docs.tree` for related topics. Most Marketplace pages are Writerside `.topic` XML; the API reference uses Markdown. Topic links can cross directories.
+
+Marketplace answers use only the local mirror, including questions about current requirements. Agents cite the checkout revision, warn when policy/pricing details may be stale, and flag external legal terms or other linked material absent locally as unverified. They do not browse to fill those gaps or present the checkout as proof of today's rules.
+
+For an existing installation, run `python3 -m intellij_research install` to clone the new repository and refresh the baseline and agent definitions. Reinstall preserves existing semantic navigation; the agents use the refreshed baseline if Marketplace routes are missing. The next `/update-intellij-research` audit adds or repairs the topic routes in the candidate without discarding previous improvements.
+
+Model-behavior acceptance cases are in `tests/marketplace-research-smoke.md`; unit tests cover the manifest, rendered instructions, path validation, and upgrade fallback.
 
 ### Skills And Routed Instructions
 
@@ -144,6 +159,7 @@ The active `sources/.intellij-research-index.md` is the cumulative validated nav
 agents/                         OpenCode agent templates
 commands/                       OpenCode command templates
 guides/AGENTS.md                source-mirror routing baseline
+guides/marketplace-research.md   shared mirror-only Marketplace research workflow
 guides/skill-research.md         shared skill/routed-instruction research workflow
 intellij_research/              cross-platform management CLI
 maintenance/update-agents.md    source-change review guidance

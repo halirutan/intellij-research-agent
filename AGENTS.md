@@ -9,11 +9,14 @@ This repository publishes and manages two globally installable OpenCode agents f
 
 It also installs the global `/update-intellij-research` command and maintains a local mirror of the upstream IntelliJ repositories.
 
+The mirror includes `JetBrains/marketplace-docs` for the full plugin publication, distribution, and monetization lifecycle. Keep Marketplace topic routes distinct from SDK/Gradle implementation guidance. Marketplace research is mirror-only: cite the checkout revision, disclose possible policy/pricing staleness, and flag linked external legal material absent locally as unverified.
+
 ## Repository Layout
 
 - `agents/*.md.in`: rendered OpenCode agent templates. Edit these, not installed files.
 - `commands/*.md.in`: rendered global OpenCode command templates.
 - `guides/AGENTS.md`: tracked seed/fallback guide copied into the source mirror.
+- `guides/marketplace-research.md`: shared mirror-only Marketplace workflow embedded into both research agents during rendering, including a fallback for older indexes.
 - `guides/skill-research.md`: shared skill and routed-instruction workflow embedded into both research agents during rendering.
 - `intellij_research/`: Python 3.10+ CLI and installation logic.
 - `repositories.json`: authoritative upstream repository, branch, and important-path manifest.

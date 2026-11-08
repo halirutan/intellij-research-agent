@@ -23,6 +23,21 @@
     ]
   },
   {
+    "name": "marketplace-docs",
+    "url": "https://github.com/JetBrains/marketplace-docs.git",
+    "branch": "master",
+    "recursive_submodules": false,
+    "important_paths": [
+      "README.MD",
+      "marketplace-docs.tree",
+      "topics/marketplace-general/uploading-a-new-plugin.topic",
+      "topics/marketplace-general/plugin-updates.topic",
+      "topics/api-reference/api-reference.md",
+      "topics/legal-agreements-policies/JetBrains-Marketplace-Approval-Guidelines.topic",
+      "topics/paid-plugins-start/paid-plugins.topic"
+    ]
+  },
+  {
     "name": "intellij-platform-gradle-plugin",
     "url": "https://github.com/JetBrains/intellij-platform-gradle-plugin.git",
     "branch": "main",
